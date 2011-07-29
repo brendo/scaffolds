@@ -54,3 +54,9 @@
 	#scaffolds.target li:first-child a {
 		border-radius: 1em 0 0 0;
 	}
+	
+#file {
+	position: absolute;
+	visibility: hidden;
+	left: -9999em;
+}
