@@ -111,10 +111,16 @@
 				// Symphony adds a hidden field before a checkbox, so field
 				// may be an area with two elements. The first element will be a
 				// hidden field, the second will be a checkbox.
-				if(field.length == 2
-					&& $(field[1]).attr('type') == 'checkbox'
+				if(
+					field.length == 2 && $(field[1]).is(':checkbox')
 				) {
 					$(field[1]).attr('checked', (value !== 'no'));
+				}
+
+				// Not all Checkbox fields have the hidden field, so handle that
+				// case as well
+				else if(field.is(':checkbox')) {
+					field.attr('checked', (value !== 'no'));
 				}
 
 				// Input
