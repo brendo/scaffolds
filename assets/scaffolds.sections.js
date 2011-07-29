@@ -1,4 +1,5 @@
 (function($) {
+
 	$(document).ready(function() {
 		var $scaffolds = $('#scaffolds-area'),
 			$fields = $('#fields-duplicator'),
@@ -12,6 +13,10 @@
 
 			Scaffolds.parseFiles(this.files);
 		});
+
+		// Add a dummy iframe so that when exporting the definition
+		// can be prompted for download
+		$scaffolds.append($('<iframe id="iframe" />'));
 
 		// Add event handlers for the Import/Export button in the Section Editor
 		$scaffolds.find('ul').delegate('a', 'click', function(event) {
@@ -93,7 +98,55 @@
 			// Not implemented.. yet
 			export: function() {
 				console.log('Exporting...');
+				var def = {};
+
+				$fields.find('li.instance div.content').each(function() {
+					var $field = $(this),
+						schema = {},
+						label;
+
+					// The key for def needs to the value of 'Label'
+					label = $field.find('input[name*=label]').val();
+
+					if(label == "") return;
+
+					// Get the type for this field instance
+					var type = $field.find('input[name*=type]:hidden').val();
+					schema['type'] = type;
+
+					// Parse the rest as usual I guess
+					$field.find(':input').filter(':not(:hidden), ').each(function() {
+						var $instance = $(this);
+
+						// For each of the fields in the setting, we need to serialize
+						// the field information, then convert it to the JSON format
+						// we are expecting..
+						var name = $instance.attr('name').match(/\[([a-z_]+)\]$/);
+
+						if(name.length == 2 && name[1] !== 'label' && $instance.val() !== '') {
+							// Valid field, need custom logic for Checkbox, everything else is ok
+							// jQuery.val() will handle the nitty gritty
+							if($instance.is(':checkbox')) {
+								schema[name[1]] = ($instance.is(':checked')) ? 'yes' : 'no';
+							}
+							else {
+								schema[name[1]] = $instance.val();
+							}
+						}
+					});
+
+					def[label] = schema;
+				});
+
 				Scaffolds.toggle();
+
+				// Get the current Section Name
+				var section_name = $('input[name*=meta]:first').val();
+				// Populate the iframe with the GET request so that the definition will downloaded
+				$('#iframe').attr(
+					'src',
+					Symphony.WEBSITE + '/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + JSON.stringify(def)
+				);
 			},
 
 			// Given the field context and a key/value pair, this will set the

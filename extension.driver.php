@@ -5,7 +5,7 @@
 		public function about() {
 			return array(
 				'name'         => 'Scaffolds',
-				'version'      => '0.1',
+				'version'      => '0.2',
 				'release-date' => 'unreleased',
 				'author'       => array(
 					'name'    => 'Brendan Abbott',
@@ -45,6 +45,8 @@
 		}
 
 		public function addSectionElements(array $context = array()) {
+			$callback = Administration::instance()->getPageCallback();
+
 			$ul = new XMLElement('ul');
 			$ul->setAttribute('id', 'scaffolds');
 
@@ -56,19 +58,19 @@
 			);
 
 			// If we are editing a Section, add 'Export'
-			/*
-			$a = Widget::Anchor(__('Export'), '#', __('Export this Section definition'), 'create button', NULL, array('accesskey' => 'c'));
-			$a->setAttribute('data-action', 'export');
-			$ul->appendChild(
-				new XMLElement('li', $a->generate())
-			);
-			*/
+			if($callback['context'][0] == 'edit') {
+				$a = Widget::Anchor(__('Export'), '#', __('Export this Section definition'), 'create button', NULL, array('accesskey' => 'c'));
+				$a->setAttribute('data-action', 'export');
+				$ul->appendChild(
+					new XMLElement('li', $a->generate())
+				);
+			}
 
 			// Scaffolds Area
 			$div = new XMLElement('div');
 			$div->setAttribute('id', 'scaffolds-area');
 			$div->appendChild($ul);
-			
+
 			if($ul->getNumberOfChildren() == 2) {
 				$div->appendChild(
 					Widget::Anchor('⬇', '#scaffolds', __('Select'), 'button', NULL, array('accesskey' => 'c'))
