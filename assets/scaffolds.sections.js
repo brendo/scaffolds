@@ -12,6 +12,8 @@
 			if(this.files.length !== 1) return;
 
 			Scaffolds.parseFiles(this.files);
+
+			$(this).val('');
 		});
 
 		// Add a dummy iframe so that when exporting the definition
@@ -65,7 +67,6 @@
 				}
 
 				// If the file isn't one of our valid types, abort.
-				// @todo Look at how else we can do this (mimetype?)
 				if(Scaffolds.acceptedFiles.test(files[0].fileName)) {
 					// Load the file as text, we'll convert to JSON in onload.
 					FR.readAsText(files[0]);
@@ -77,27 +78,34 @@
 			import: function(def) {
 				// Loop over the definition and trigger the duplicators
 				$.each(def, function(label, definition) {
-					$controls.find('option[data-type = ' + definition.type + ']').attr('selected', 'selected');
-					$controls.find('a.constructor').trigger('click');
+					// Check to make sure we aren't overriding an existing field
+					// definition with the same name
+					if(
+						$fields.find('li.instance input[name*=label]').filter(function() {
+							return $(this).val() == label;
+						}).length !== 1
+					) {
+						$controls.find('option[data-type = ' + definition.type + ']').attr('selected', 'selected');
+						$controls.find('a.constructor').trigger('click');
 
-					// Need to check here that label isn't already in the listing
-					var field = $fields.find('li.instance:last-of-type div.content');
-					field.find('input[name*=label]').val(label);
+						var field = $fields.find('li.instance:last-of-type div.content');
+						field.find('input[name*=label]').val(label);
 
-					// Loop over our 'el' and set the values
-					for(var k in definition) {
-						if(!definition.hasOwnProperty(k) || k === 'type') continue;
+						// Loop over our 'el' and set the values
+						for(var k in definition) {
+							if(!definition.hasOwnProperty(k) || k === 'type') continue;
 
-						Scaffolds.set(field, k, definition[k]);
+							Scaffolds.set(field, k, definition[k]);
+						}
 					}
 				});
 
 				Scaffolds.toggle();
 			},
 
-			// Not implemented.. yet
+			// This iterates over all the instances and generates a JSON schema
+			// for the user to download. The JSON filename is the Section handle.
 			export: function() {
-				console.log('Exporting...');
 				var def = {};
 
 				$fields.find('li.instance div.content').each(function() {
