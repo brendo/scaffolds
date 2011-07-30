@@ -1,11 +1,13 @@
 <?php
 
 	Class Spit {
+
 		public static function output($data) {
 			header("Pragma: public");
 			header("Expires: 0");
 			header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
 			header("Content-Type: application/json");
+			header("Content-Length: " . strlen($data['schema']));
 			header("Content-Disposition: attachment; filename=" . Spit::createFilename($data['section']) . ".scaffolds.json");
 			echo $data['schema'];
 			exit;

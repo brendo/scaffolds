@@ -5,13 +5,13 @@
 		public function about() {
 			return array(
 				'name'         => 'Scaffolds',
-				'version'      => '0.2',
-				'release-date' => 'unreleased',
+				'version'      => '0.3',
+				'release-date' => '2011-07-30',
 				'author'       => array(
 					'name'    => 'Brendan Abbott',
 					'email'   => 'brendan@bloodbone.ws'
 				),
-				'description'	=> 'A Symphony extension that allows a developer to quickly create Sections from JSON'
+				'description'	=> 'A Symphony extension that allows a developer to quickly create Sections using JSON'
 			);
 		}
 
