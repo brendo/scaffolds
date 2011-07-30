@@ -1,12 +1,21 @@
 (function($) {
-
 	$(document).ready(function() {
+		Symphony.Language.add({
+			'<code>{$file}</code> does not appear to be JSON.': false,
+			'An error occuring parsing the definition, ensure it is valid JSON.': false,
+			'Imported {$num} fields from definition.': false
+		});
+
 		var $scaffolds = $('#scaffolds-area'),
-			$fields = $('#fields-duplicator'),
-			$controls = $fields.find('.controls');
+			$fields = $('#fields-duplicator');
 
 		// Add a dummy upload field so we can use the FileReader API
-		$scaffolds.append($('<input type="file" id="file" />'));
+		// Add a dummy iframe so that when exporting the definition
+		// can be prompted for download
+		$scaffolds
+			.append($('<input type="file" id="file" />'))
+			.append($('<iframe id="iframe" />'));
+
 		var $file = $('#file').bind('change', function() {
 			// If no file was uploaded, abort.
 			if(this.files.length !== 1) return;
@@ -15,10 +24,6 @@
 
 			$(this).val('');
 		});
-
-		// Add a dummy iframe so that when exporting the definition
-		// can be prompted for download
-		$scaffolds.append($('<iframe id="iframe" />'));
 
 		// Add event handlers for the Import/Export button in the Section Editor
 		$scaffolds.find('ul').delegate('a', 'click', function(event) {
@@ -37,7 +42,7 @@
 		// When the 'dropdown' arrow is clicked, toggle the 'dropdown' to close
 		// (or open)
 		$scaffolds.delegate('ul + a', 'click', function(event) {
-			Scaffolds.toggle();
+			$scaffolds.find('ul').toggleClass('target');
 			event.preventDefault();
 		});
 
@@ -50,34 +55,55 @@
 			// file is one Scaffolds cares about (or rather can use) and if
 			// so will call Scaffolds.import
 			parseFiles: function(files) {
-				var FR = new FileReader();
+				var reader = new FileReader();
 
 				// Listen for the onload event of the FileReader API
 				// Tries to parse the file as JSON, if it's malformed, just
 				// return (for now)
-				// @todo Alert the user that the file isn't valid JSON
-				FR.onload = function(event) {
+				reader.onload = function(event) {
 					try {
-						def = $.parseJSON(event.target.result);
-						Scaffolds.import(def);
+						Scaffolds.import(
+							$.parseJSON(event.target.result)
+						);
 					}
 					catch(e) {
-						return;
+						Symphony.Message.post(
+							Symphony.Language.get('An error occuring parsing the definition, ensure it is valid JSON.'),
+							'error'
+						);
+						Scaffolds.applyMessage();
+						Scaffolds.closeDropDown();
 					}
 				}
 
 				// If the file isn't one of our valid types, abort.
 				if(Scaffolds.acceptedFiles.test(files[0].fileName)) {
 					// Load the file as text, we'll convert to JSON in onload.
-					FR.readAsText(files[0]);
+					reader.readAsText(files[0]);
+				}
+				else {
+					Symphony.Message.post(
+						Symphony.Language.get('<code>{$file}</code> does not appear to be JSON.', {
+							'file': files[0].fileName
+						}),
+						'error'
+					);
+					Scaffolds.applyMessage();
+					Scaffolds.closeDropDown();
 				}
 			},
 
 			// Called with a JSON object as a parameter, this will trigger the
 			// Section Editor duplicator
 			import: function(def) {
+				var $controls = $fields.find('.controls'),
+					imported = 0;
+
 				// Loop over the definition and trigger the duplicators
-				$.each(def, function(label, definition) {
+				for(var label in def) {
+					if(!def.hasOwnProperty(label)) continue;
+
+					var definition = def[label];
 					// Check to make sure we aren't overriding an existing field
 					// definition with the same name
 					if(
@@ -97,10 +123,19 @@
 
 							Scaffolds.set(field, k, definition[k]);
 						}
-					}
-				});
 
-				Scaffolds.toggle();
+						imported++;
+					}
+				}
+
+				Symphony.Message.post(
+					Symphony.Language.get('Imported {$num} fields from definition.', {
+						'num': imported
+					}),
+					'success'
+				);
+				Scaffolds.applyMessage();
+				Scaffolds.closeDropDown();
 			},
 
 			// This iterates over all the instances and generates a JSON schema
@@ -119,17 +154,15 @@
 					if(label == "") return;
 
 					// Get the type for this field instance
-					var type = $field.find('input[name*=type]:hidden').val();
-					schema['type'] = type;
+					schema['type'] = $field.find('input[name*=type]:hidden').val();
 
 					// Parse the rest as usual I guess
 					$field.find(':input').filter(':not(:hidden), ').each(function() {
-						var $instance = $(this);
-
-						// For each of the fields in the setting, we need to serialize
-						// the field information, then convert it to the JSON format
-						// we are expecting..
-						var name = $instance.attr('name').match(/\[([a-z_]+)\]$/);
+						var $instance = $(this),
+							// For each of the fields in the setting, we need to serialize
+							// the field information, then convert it to the JSON format
+							// we are expecting..
+							name = $instance.attr('name').match(/\[([a-z_]+)\]$/);
 
 						if(name.length == 2 && name[1] !== 'label' && $instance.val() !== '') {
 							// Valid field, need custom logic for Checkbox, everything else is ok
@@ -146,7 +179,7 @@
 					def[label] = schema;
 				});
 
-				Scaffolds.toggle();
+				Scaffolds.closeDropDown();
 
 				// Get the current Section Name
 				var section_name = $('input[name*=meta]:first').val();
@@ -190,10 +223,16 @@
 				}
 			},
 
-			// Add/Removes the toggle class. Can be done with :target selector,
+			// Removes the toggle class. Can be done with :target selector,
 			// but we don't want the 'snap to element' effect, so no bingo.
-			toggle: function() {
-				$scaffolds.find('ul').toggleClass('target');
+			closeDropDown: function() {
+				$scaffolds.find('ul').removeClass('target');
+			},
+
+			// Used to animate the Symphony Message's for consistency
+			applyMessage: function() {
+				// Dim system messages
+				Symphony.Message.fade('silence', 10000);
 			}
 		};
 	});
