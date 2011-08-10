@@ -2,8 +2,8 @@
 
 Scaffolds allows you to quickly create Sections from a file. Section definitions can be exported and then imported into other Symphony installations using JSON. Definitions can be saved and reused on other Symphony projects to save you time recreating those common sections.
 
-- Version: 0.3
-- Date: 30th July, 2011
+- Version: 0.4
+- Date: 10th August, 2011
 - Requirements: Symphony 2.2 or newer, <http://github.com/symphonycms/symphony-2/>, a browser that supports the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader)
 - Author: Brendan Abbott, brendan@bloodbone.ws
 - GitHub Repository: <http://github.com/brendo/scaffolds>
@@ -21,8 +21,6 @@ For further information, please refer to the [wiki](https://github.com/brendo/sc
 * This extension makes use of the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader) to parse the files without actually uploading them a destination. At the time of release, this is only supported by Firefox and Chrome.
 * The only valid file that can be parsed at the moment is JSON, with the file extension of `.json`.
 * Checkbox values accept 'yes' and 'no' for 'checked' or 'unchecked', just like Symphony.
-* Linking settings, think Select Box Link, Reference Link, Subsection Manager,
-Select Box fields (and more), won't work as expected unfortunately. This fields save the related field's ID, which means it's by no means reliable across different installs. If someone has a creative solution, please speak up!
 
 ## Credits
 

@@ -5,8 +5,8 @@
 		public function about() {
 			return array(
 				'name'         => 'Scaffolds',
-				'version'      => '0.3',
-				'release-date' => '2011-07-30',
+				'version'      => '0.4',
+				'release-date' => '2011-08-10',
 				'author'       => array(
 					'name'    => 'Brendan Abbott',
 					'email'   => 'brendan@bloodbone.ws'
