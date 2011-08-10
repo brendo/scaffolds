@@ -162,32 +162,42 @@
 							// For each of the fields in the setting, we need to serialize
 							// the field information, then convert it to the JSON format
 							// we are expecting..
-							name = $instance.attr('name').match(/\[([a-z_]+)\]$/),
+							name = $instance.attr('name').match(/\[([a-z_]+)\](\[\])?$/),
 							value = $instance.val();
 
 						// Get fields that have a name, aren't the label (we already got that)
 						// and have a field that actually has a value.
-						if(name.length == 2 && name[1] !== 'label' && value !== '') {
-							// Valid field, need custom logic for Checkbox
+						if(name.length >= 2 && name[1] !== 'label' && value !== '') {
+							// Custom logic for Checkbox
 							if($instance.is(':checkbox')) {
 								schema[name[1]] = ($instance.is(':checked')) ? 'yes' : 'no';
 							}
 
-							// If the field is a Select box, and the value is a number, we can
-							// assume this is an ID. Exporting an ID is pretty useless across
-							// environments, so instead we'll take the handle (and the optgroup)
-							// Note at the moment we are only doing this for single value select
-							// boxes.
-							else if($instance.is('select') && $instance.is(':not([multiple])') && (value.search(/^[0-9]+$/) !== -1)) {
+							// Custom logic for Select Box
+							else if($instance.is('select')) {
 								var $selected = $instance.find('option:selected'),
-									tmp;
+									tmp = [];
 
-								tmp = {
-									'value': $selected.text()
-								};
+								for(var i = 0, l = $selected.length; i < l; i++) {
+									var $v = $($selected[i]);
 
-								if($selected.closest('optgroup').length) {
-									tmp.optgroup = $selected.closest('optgroup').attr('label');
+									// If `v` is a number, we'll assume that's referencing an ID
+									// This isn't useful to export across environments, but exporting
+									// the Name might be
+									if($v.val().search(/^[0-9]+$/) !== -1) {
+										var t = {
+											'value': $v.text()
+										};
+
+										if($v.closest('optgroup').length) {
+											t.optgroup = $v.closest('optgroup').attr('label');
+										}
+										tmp.push(t);
+									}
+									// It's fine, normal Select Box value
+									else {
+										tmp.push({'value': $v.val()});
+									}
 								}
 
 								schema[name[1]] = tmp;
@@ -210,7 +220,7 @@
 				// Populate the iframe with the GET request so that the definition will downloaded
 				$('#iframe').attr(
 					'src',
-					Symphony.WEBSITE + '/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + JSON.stringify(def)
+					Symphony.WEBSITE + '/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + encodeURIComponent(JSON.stringify(def))
 				);
 			},
 
@@ -221,24 +231,28 @@
 
 				// Select
 				if(field.is('select')) {
-					if($.isPlainObject(value)) {
-						// Select has optgroup
-						if(field.find('optgroup').length) {
-							field
-								.find('optgroup[label = ' + value.optgroup + ']')
-								.find('option').filter(function() {
-									return $(this).text() == value.value;
-								})
-								.attr('selected', 'selected');
-						}
+					if($.isArray(value)) {
+						for(var i = 0, l = value.length; i < l; i++) {
+							var v = value[i];
 
-						// Select doesn't have an optgroup
-						else {
-							field
-								.find('option').filter(function() {
-									return $(this).text() == value.value;
-								})
-								.attr('selected', 'selected');
+							// Select has optgroup
+							if(field.find('optgroup').length) {
+								field
+									.find('optgroup[label = ' + v.optgroup + ']')
+									.find('option').filter(function() {
+										return $(this).text() == v.value;
+									})
+									.attr('selected', 'selected');
+							}
+
+							// Select doesn't have an optgroup
+							else {
+								field
+									.find('option').filter(function() {
+										return $(this).text() == v.value;
+									})
+									.attr('selected', 'selected');
+							}
 						}
 					}
 					else {
