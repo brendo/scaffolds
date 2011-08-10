@@ -162,16 +162,40 @@
 							// For each of the fields in the setting, we need to serialize
 							// the field information, then convert it to the JSON format
 							// we are expecting..
-							name = $instance.attr('name').match(/\[([a-z_]+)\]$/);
+							name = $instance.attr('name').match(/\[([a-z_]+)\]$/),
+							value = $instance.val();
 
-						if(name.length == 2 && name[1] !== 'label' && $instance.val() !== '') {
-							// Valid field, need custom logic for Checkbox, everything else is ok
-							// jQuery.val() will handle the nitty gritty
+						// Get fields that have a name, aren't the label (we already got that)
+						// and have a field that actually has a value.
+						if(name.length == 2 && name[1] !== 'label' && value !== '') {
+							// Valid field, need custom logic for Checkbox
 							if($instance.is(':checkbox')) {
 								schema[name[1]] = ($instance.is(':checked')) ? 'yes' : 'no';
 							}
+
+							// If the field is a Select box, and the value is a number, we can
+							// assume this is an ID. Exporting an ID is pretty useless across
+							// environments, so instead we'll take the handle (and the optgroup)
+							// Note at the moment we are only doing this for single value select
+							// boxes.
+							else if($instance.is('select') && $instance.is(':not([multiple])') && (value.search(/^[0-9]+$/) !== -1)) {
+								var $selected = $instance.find('option:selected'),
+									tmp;
+
+								tmp = {
+									'value': $selected.text()
+								};
+
+								if($selected.closest('optgroup').length) {
+									tmp.optgroup = $selected.closest('optgroup').attr('label');
+								}
+
+								schema[name[1]] = tmp;
+							}
+
+							// jQuery's val() will handle alot of the suck for us
 							else {
-								schema[name[1]] = $instance.val();
+								schema[name[1]] = value;
 							}
 						}
 					});
@@ -197,7 +221,30 @@
 
 				// Select
 				if(field.is('select')) {
-					field.find('option[value=' + value + ']').attr('selected', 'selected');
+					if($.isPlainObject(value)) {
+						// Select has optgroup
+						if(field.find('optgroup').length) {
+							field
+								.find('optgroup[label = ' + value.optgroup + ']')
+								.find('option').filter(function() {
+									return $(this).text() == value.value;
+								})
+								.attr('selected', 'selected');
+						}
+
+						// Select doesn't have an optgroup
+						else {
+							field
+								.find('option').filter(function() {
+									return $(this).text() == value.value;
+								})
+								.attr('selected', 'selected');
+						}
+					}
+					else {
+						field.find('option[value=' + value + ']').attr('selected', 'selected');
+					}
+
 					return;
 				}
 
