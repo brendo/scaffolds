@@ -77,7 +77,7 @@
 				}
 
 				// If the file isn't one of our valid types, abort.
-				if(Scaffolds.acceptedFiles.test(files[0].fileName)) {
+				if(Scaffolds.acceptedFiles.test(files[0].name)) {
 					// Load the file as text, we'll convert to JSON in onload.
 					reader.readAsText(files[0]);
 				}
