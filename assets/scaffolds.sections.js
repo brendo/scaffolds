@@ -84,7 +84,7 @@
 				else {
 					Symphony.Message.post(
 						Symphony.Language.get('<code>{$file}</code> does not appear to be JSON.', {
-							'file': files[0].fileName
+							'file': files[0].name
 						}),
 						'error'
 					);
