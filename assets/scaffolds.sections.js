@@ -77,14 +77,14 @@
 				}
 
 				// If the file isn't one of our valid types, abort.
-				if(Scaffolds.acceptedFiles.test(files[0].fileName)) {
+				if(Scaffolds.acceptedFiles.test(files[0].name)) {
 					// Load the file as text, we'll convert to JSON in onload.
 					reader.readAsText(files[0]);
 				}
 				else {
 					Symphony.Message.post(
 						Symphony.Language.get('<code>{$file}</code> does not appear to be JSON.', {
-							'file': files[0].fileName
+							'file': files[0].name
 						}),
 						'error'
 					);
