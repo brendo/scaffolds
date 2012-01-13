@@ -237,36 +237,28 @@
 
 							// Select has optgroup
 							if(field.find('optgroup').length) {
-								field
-									.find('optgroup[label = ' + v.optgroup + ']')
-									.find('option').filter(function() {
-										return $(this).text() == v.value;
-									})
-									.attr('selected', 'selected');
+								Scaffolds.setSelectBox(
+									field.find('optgroup[label = ' + v.optgroup + ']'),
+									v.value
+								);
 							}
 
 							// Select doesn't have an optgroup
 							else {
-								field
-									.find('option').filter(function() {
-										return $(this).text() == v.value;
-									})
-									.attr('selected', 'selected');
+								Scaffolds.setSelectBox(field, v.value);
 							}
 						}
 					}
 					else {
-						field.find('option[value=' + value + ']').attr('selected', 'selected');
+						Scaffolds.setSelectBox(field, value);
 					}
-
-					return;
 				}
 
 				// Checkbox
 				// Symphony adds a hidden field before a checkbox, so field
 				// may be an area with two elements. The first element will be a
 				// hidden field, the second will be a checkbox.
-				if(
+				else if(
 					field.length == 2 && $(field[1]).is(':checkbox')
 				) {
 					$(field[1]).attr('checked', (value !== 'no'));
@@ -282,6 +274,16 @@
 				else {
 					field.val(value);
 				}
+			},
+
+			// Given an element (<select> or <optgroup>) and a value, this will search
+			// all the options and add the selected attribute where the option's
+			// text() or @value matches the given value.
+			setSelectBox: function(el, value) {
+				return el.find('option').filter(function() {
+					var $option = $(this);
+					return $option.text() == value || $option.attr('value') == value;
+				}).attr('selected', 'selected');
 			},
 
 			// Removes the toggle class. Can be done with :target selector,
