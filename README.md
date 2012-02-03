@@ -2,9 +2,9 @@
 
 Scaffolds allows you to quickly create Sections from a file. Section definitions can be exported and then imported into other Symphony installations using JSON. Definitions can be saved and reused on other Symphony projects to save you time recreating those common sections.
 
-- Version: 0.4
-- Date: 10th August, 2011
-- Requirements: Symphony 2.2 or newer, <http://github.com/symphonycms/symphony-2/>, a browser that supports the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader)
+- Version: 0.5
+- Date: 3rd February, 2011
+- Requirements: Symphony 2.2 or newer, <http://github.com/symphonycms/symphony-2/>, a [browser that supports](http://caniuse.com/#feat=filereader) the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader)
 - Author: Brendan Abbott, brendan@bloodbone.ws
 - GitHub Repository: <http://github.com/brendo/scaffolds>
 
@@ -18,7 +18,7 @@ For further information, please refer to the [wiki](https://github.com/brendo/sc
 
 ## Notes
 
-* This extension makes use of the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader) to parse the files without actually uploading them a destination. At the time of release, this is only supported by Firefox and Chrome.
+* This extension makes use of the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader) to parse the files without actually uploading them a destination. At the time of release, this is supported by Firefox 3.6+, Chrome 7+ and IE10+. A Safari nightly also has support for the `FileReader API`. Check the latest support at [caniuse.com](http://caniuse.com/#feat=filereader)
 * The only valid file that can be parsed at the moment is JSON, with the file extension of `.json`.
 * Checkbox values accept 'yes' and 'no' for 'checked' or 'unchecked', just like Symphony.
 
