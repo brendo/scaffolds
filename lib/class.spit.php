@@ -14,7 +14,6 @@
 		}
 
 		public static function createFilename($string, $delim='-') {
-
 			// Strip out any tag
 			$string = strip_tags($string);
 
@@ -34,7 +33,6 @@
 			$string = strtolower($string);
 
 			return $string;
-
 		}
 	}
 
