@@ -7,7 +7,8 @@
 		});
 
 		var $scaffolds = $('#scaffolds-area'),
-			$fields = $('#fields-duplicator');
+			$fields = $('#fields-duplicator'),
+			$sectionEssentials = $scaffolds.next('fieldset.settings');
 
 		// Add a dummy upload field so we can use the FileReader API
 		// Add a dummy iframe so that when exporting the definition
@@ -29,10 +30,10 @@
 		$scaffolds.find('ul').delegate('a', 'click', function(event) {
 			var $self = $(this);
 
-			if($self.data('action') == 'import') {
+			if($self.data('action') === 'import') {
 				$file.trigger('click');
 			}
-			else if($self.data('action') == 'export') {
+			else if($self.data('action') === 'export') {
 				Scaffolds.export();
 			}
 
@@ -74,7 +75,7 @@
 						Scaffolds.applyMessage();
 						Scaffolds.closeDropDown();
 					}
-				}
+				};
 
 				// If the file isn't one of our valid types, abort.
 				if(Scaffolds.acceptedFiles.test(files[0].name)) {
@@ -97,31 +98,54 @@
 			// Section Editor duplicator
 			import: function(def) {
 				var $controls = $fields.find('.controls'),
-					imported = 0;
+					imported = 0,
+					fields_definition = {},
+					section_definition = {};
 
-				// Loop over the definition and trigger the duplicators
-				for(var label in def) {
-					if(!def.hasOwnProperty(label)) continue;
+				// New versions of Scaffolds have section and field objects.
+				// Old ones just output the fields.
+				if(def.fields !== undefined && def.section !== undefined) {
+					section_definition = def.section;
+					fields_definition = def.fields;
+				}
+				else {
+					fields_definition = def;
+				}
 
-					var definition = def[label];
+				// Loop over section definition
+				for(var setting in section_definition) {
+					if(!section_definition.hasOwnProperty(setting)) continue;
+
+					Scaffolds.set(
+						$sectionEssentials.find(':input[name*=' + setting + ']').closest('label'),
+						setting,
+						section_definition[setting]
+					);
+				}
+
+				// Loop over the fields definition and trigger the duplicators
+				for(var label in fields_definition) {
+					if(!fields_definition.hasOwnProperty(label)) continue;
+					var definition = fields_definition[label];
+
 					// Check to make sure we aren't overriding an existing field
 					// definition with the same name
 					if(
 						$fields.find('li.instance input[name*=label]').filter(function() {
-							return $(this).val() == label;
+							return $(this).val() === label;
 						}).length !== 1
 					) {
 						$controls.find('option[data-type = ' + definition.type + ']').attr('selected', 'selected');
 						$controls.find('a.constructor').trigger('click');
 
-						var field = $fields.find('li.instance:last-of-type div.content');
-						field.find('input[name*=label]').val(label);
+						var $field = $fields.find('li.instance:last-of-type div.content');
+						$field.find('input[name*=label]').val(label);
 
 						// Loop over our 'el' and set the values
 						for(var k in definition) {
 							if(!definition.hasOwnProperty(k) || k === 'type') continue;
 
-							Scaffolds.set(field, k, definition[k]);
+							Scaffolds.set($field, k, definition[k]);
 						}
 
 						imported++;
@@ -141,76 +165,50 @@
 			// This iterates over all the instances and generates a JSON schema
 			// for the user to download. The JSON filename is the Section handle.
 			export: function() {
-				var def = {};
+				var def = {
+					section: {},
+					fields: {}
+				};
 
+				// Export the Section metadata
+				$sectionEssentials.find('input:not(:hidden)').each(function() {
+					var $setting = $(this),
+						label = $setting.attr('name').replace(/(meta\[|\])/g, ''),
+						data = Scaffolds.get($setting);
+
+					if(data !== false) def.section[label] = data;
+				});
+
+				// Export the Fields
 				$fields.find('li.instance div.content').each(function() {
 					var $field = $(this),
 						schema = {},
-						label;
+						// The key for def needs to the value of 'Label'
+						label = $field.find('input[name*=label]').val();
 
-					// The key for def needs to the value of 'Label'
-					label = $field.find('input[name*=label]').val();
-
-					if(label == "") return;
+					if(label === "") return;
 
 					// Get the type for this field instance
-					schema['type'] = $field.find('input[name*=type]:hidden').val();
+					schema.type = $field.find('input[name*=type]:hidden').val();
 
 					// Parse the rest as usual I guess
-					$field.find(':input').filter(':not(:hidden), ').each(function() {
+					$field.find(':input').filter(':not(:hidden)').each(function() {
 						var $instance = $(this),
 							// For each of the fields in the setting, we need to serialize
 							// the field information, then convert it to the JSON format
 							// we are expecting..
-							name = $instance.attr('name').match(/\[([a-z_]+)\](\[\])?$/),
-							value = $instance.val();
+							name = $instance.attr('name').match(/\[([a-z_]+)\](\[\])?$/);
 
 						// Get fields that have a name, aren't the label (we already got that)
 						// and have a field that actually has a value.
-						if(name.length >= 2 && name[1] !== 'label' && value !== '') {
-							// Custom logic for Checkbox
-							if($instance.is(':checkbox')) {
-								schema[name[1]] = ($instance.is(':checked')) ? 'yes' : 'no';
-							}
+						if(name.length >= 2 && name[1] !== 'label' && $instance.val() !== '') {
+							var data = Scaffolds.get($instance);
 
-							// Custom logic for Select Box
-							else if($instance.is('select')) {
-								var $selected = $instance.find('option:selected'),
-									tmp = [];
-
-								for(var i = 0, l = $selected.length; i < l; i++) {
-									var $v = $($selected[i]);
-
-									// If `v` is a number, we'll assume that's referencing an ID
-									// This isn't useful to export across environments, but exporting
-									// the Name might be
-									if($v.val().search(/^[0-9]+$/) !== -1) {
-										var t = {
-											'value': $v.text()
-										};
-
-										if($v.closest('optgroup').length) {
-											t.optgroup = $v.closest('optgroup').attr('label');
-										}
-										tmp.push(t);
-									}
-									// It's fine, normal Select Box value
-									else {
-										tmp.push({'value': $v.val()});
-									}
-								}
-
-								schema[name[1]] = tmp;
-							}
-
-							// jQuery's val() will handle alot of the suck for us
-							else {
-								schema[name[1]] = value;
-							}
+							if(data !== false) schema[name[1]] = data;
 						}
 					});
 
-					def[label] = schema;
+					def.fields[label] = schema;
 				});
 
 				Scaffolds.closeDropDown();
@@ -224,33 +222,78 @@
 				);
 			},
 
+			// Returns the value of a given field, approtiate for Symphony.
+			get: function($field) {
+				// Custom logic for Checkbox
+				if($field.is(':checkbox')) {
+					return $field.is(':checked') ? 'yes' : 'no';
+				}
+
+				// Custom logic for Select Box
+				else if($field.is('select')) {
+					var $selected = $field.find('option:selected'),
+						tmp = [];
+
+					for(var i = 0, l = $selected.length; i < l; i++) {
+						var $v = $($selected[i]);
+
+						// If `v` is a number, we'll assume that's referencing an ID
+						// This isn't useful to export across environments, but exporting
+						// the Name might be
+						if($v.val().search(/^[0-9]+$/) !== -1) {
+							var t = {
+								'value': $v.text()
+							};
+
+							if($v.closest('optgroup').length) {
+								t.optgroup = $v.closest('optgroup').attr('label');
+							}
+							tmp.push(t);
+						}
+						// It's fine, normal Select Box value
+						else {
+							tmp.push({'value': $v.val()});
+						}
+					}
+
+					return tmp;
+				}
+
+				// jQuery's val() will handle alot of the suck for us
+				else {
+					return $field.val();
+				}
+			},
+
 			// Given the field context and a key/value pair, this will set the
 			// approtiate values in the Field's settings.
 			set: function(field, key, value) {
-				var field = field.find(':input[name*=' + key + ']');
+				var $field = field.find(':input[name*=' + key + ']');
+
+				if($field.length === 0) return false;
 
 				// Select
-				if(field.is('select')) {
+				if($field.is('select')) {
 					if($.isArray(value)) {
 						for(var i = 0, l = value.length; i < l; i++) {
 							var v = value[i];
 
 							// Select has optgroup
-							if(field.find('optgroup').length) {
+							if($field.find('optgroup').length) {
 								Scaffolds.setSelectBox(
-									field.find('optgroup[label = ' + v.optgroup + ']'),
+									$field.find('optgroup[label = ' + v.optgroup + ']'),
 									v.value
 								);
 							}
 
 							// Select doesn't have an optgroup
 							else {
-								Scaffolds.setSelectBox(field, v.value);
+								Scaffolds.setSelectBox($field, v.value);
 							}
 						}
 					}
 					else {
-						Scaffolds.setSelectBox(field, value);
+						Scaffolds.setSelectBox($field, value);
 					}
 				}
 
@@ -259,20 +302,20 @@
 				// may be an area with two elements. The first element will be a
 				// hidden field, the second will be a checkbox.
 				else if(
-					field.length == 2 && $(field[1]).is(':checkbox')
+					$field.length === 2 && $field.eq(1).is(':checkbox')
 				) {
-					$(field[1]).attr('checked', (value !== 'no'));
+					$field.eq(1).attr('checked', (value !== 'no'));
 				}
 
 				// Not all Checkbox fields have the hidden field, so handle that
 				// case as well
-				else if(field.is(':checkbox')) {
-					field.attr('checked', (value !== 'no'));
+				else if($field.is(':checkbox')) {
+					$field.attr('checked', (value !== 'no'));
 				}
 
 				// Input
 				else {
-					field.val(value);
+					$field.val(value);
 				}
 			},
 
@@ -282,7 +325,7 @@
 			setSelectBox: function(el, value) {
 				return el.find('option').filter(function() {
 					var $option = $(this);
-					return $option.text() == value || $option.attr('value') == value;
+					return $option.text() === value || $option.attr('value') === value;
 				}).attr('selected', 'selected');
 			},
 
