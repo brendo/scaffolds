@@ -14,7 +14,10 @@
 		</author>
 	</authors>
 	<releases>
-		<release version="0.5" date="2012-02-03" min="2.2">
+		<release version="0.6" date="2012-03-27" min="2.3">
+			- Update for Symphony 2.3
+		</release>
+		<release version="0.5" date="2012-02-03" min="2.2" max="2.2.5">
 			- Add support for exporting/importing the Section essentials (name, navigation group, backend visibility). Definition files now have a slightly different output format (old formats still supported). Implements [#4](https://github.com/brendo/scaffolds/issues/4) &amp; [#5](https://github.com/brendo/scaffolds/issues/5)
 			- Fixed exporting of some Select values, [#2](https://github.com/brendo/scaffolds/issues/2)
 			- Exported definitions are now pretty printed

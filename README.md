@@ -2,9 +2,9 @@
 
 Scaffolds allows you to quickly create Sections from a file. Section definitions can be exported and then imported into other Symphony installations using JSON. Definitions can be saved and reused on other Symphony projects to save you time recreating those common sections.
 
-- Version: 0.5
-- Date: 3rd February, 2011
-- Requirements: Symphony 2.2 or newer, <http://github.com/symphonycms/symphony-2/>, a [browser that supports](http://caniuse.com/#feat=filereader) the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader)
+- Version: 0.6
+- Date: 27th March, 2012
+- Requirements: Symphony 2.3 or newer, <http://github.com/symphonycms/symphony-2/>, a [browser that supports](http://caniuse.com/#feat=filereader) the [FileReader API](https://developer.mozilla.org/en/DOM/FileReader)
 - Author: Brendan Abbott, brendan@bloodbone.ws
 - GitHub Repository: <http://github.com/brendo/scaffolds>
 
