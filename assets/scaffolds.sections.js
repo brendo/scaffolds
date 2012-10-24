@@ -27,7 +27,7 @@
 		});
 
 		// Add event handlers for the Import/Export button in the Section Editor
-		$('ul.actions').delegate('a.button', 'click', function(event) {
+		$('ul.actions').delegate('a.button:not(.create)', 'click', function(event) {
 			var $self = $(this);
 
 			if($self.data('action') === 'import') {
@@ -90,7 +90,7 @@
 			// Called with a JSON object as a parameter, this will trigger the
 			// Section Editor duplicator
 			import: function(def) {
-				var $controls = $fields.find('.controls'),
+				var $controls = $('fieldset.apply'),
 					imported = 0,
 					fields_definition = {},
 					section_definition = {};
@@ -128,8 +128,9 @@
 							return $(this).val() === label;
 						}).length !== 1
 					) {
+
 						$controls.find('option[data-type = ' + definition.type + ']').attr('selected', 'selected');
-						$controls.find('a.constructor').trigger('click');
+						$controls.find('.constructor').trigger('click');
 
 						var $field = $fields.find('li.instance:last-of-type div.content');
 						$field.find('input[name*=label]').val(label);
@@ -211,7 +212,7 @@
 				// Populate the iframe with the GET request so that the definition will downloaded
 				$('#iframe').attr(
 					'src',
-					Symphony.WEBSITE + '/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + encodeURIComponent(JSON.stringify(def, null, "  "))
+					'/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + encodeURIComponent(JSON.stringify(def, null, "  "))
 				);
 			},
 
@@ -331,7 +332,7 @@
 			// Used to animate the Symphony Message's for consistency
 			applyMessage: function() {
 				// Dim system messages
-				Symphony.Message.fade('silence', 10000);
+				// Symphony.Message.fade('silence', 10000);
 			}
 		};
 	});
