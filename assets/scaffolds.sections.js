@@ -129,7 +129,7 @@
 						}).length !== 1
 					) {
 
-						$controls.find('option[data-type = ' + definition.type + ']').attr('selected', 'selected');
+						$controls.find('option[value = ' + definition.type + ']').attr('selected', 'selected');
 						$controls.find('.constructor').trigger('click');
 
 						var $field = $fields.find('li.instance:last-of-type div.content');
