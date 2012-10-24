@@ -3,7 +3,8 @@
 		Symphony.Language.add({
 			'<code>{$file}</code> does not appear to be JSON.': false,
 			'An error occuring parsing the definition, ensure it is valid JSON.': false,
-			'Imported {$num} fields from definition.': false
+			'Imported {$num} fields from definition.': false,
+            'Field {$field} does not exist. Install the field first.' : false
 		});
 
 		var $scaffolds = $('#scaffolds-area'),
@@ -128,8 +129,18 @@
 							return $(this).val() === label;
 						}).length !== 1
 					) {
-
-						$controls.find('option[value = ' + definition.type + ']').attr('selected', 'selected');
+                        $option = $controls.find('option[value = ' + definition.type + ']');
+                        if($option.length == 0)
+                        {
+                            Symphony.Message.post(
+                                Symphony.Language.get('Field {$field} does not exist. Install the field first.',{
+                                    'field' : definition.type
+                                }),
+                                'error'
+                            );
+                            return;
+                        }
+                        $option.attr('selected', 'selected');
 						$controls.find('.constructor').trigger('click');
 
 						var $field = $fields.find('li.instance:last-of-type div.content');
