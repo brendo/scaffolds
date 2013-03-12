@@ -197,7 +197,7 @@
 					schema.type = $field.find('input[name*=type]:hidden').val();
 
 					// Parse the rest as usual I guess
-					$field.find(':input').filter(':not(:hidden)').each(function() {
+					$field.find(':input').each(function() {
 						var $instance = $(this),
 							// For each of the fields in the setting, we need to serialize
 							// the field information, then convert it to the JSON format
@@ -206,7 +206,7 @@
 
 						// Get fields that have a name, aren't the label (we already got that)
 						// and have a field that actually has a value.
-						if(name.length >= 2 && name[1] !== 'label' && $instance.val() !== '') {
+						if(name.length >= 2 && name[1] !== 'label' && $instance.val() !== '' && name[1] !== 'id') {
 							var data = Scaffolds.get($instance);
 
 							if(data !== false) schema[name[1]] = data;
