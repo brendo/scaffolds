@@ -3,7 +3,8 @@
 		Symphony.Language.add({
 			'<code>{$file}</code> does not appear to be JSON.': false,
 			'An error occuring parsing the definition, ensure it is valid JSON.': false,
-			'Imported {$num} fields from definition.': false
+			'Imported {$num} fields from definition.': false,
+            'Field {$field} does not exist. Install the field first.' : false
 		});
 
 		var $scaffolds = $('#scaffolds-area'),
@@ -27,7 +28,7 @@
 		});
 
 		// Add event handlers for the Import/Export button in the Section Editor
-		$('ul.actions').delegate('a.button', 'click', function(event) {
+		$('ul.actions').delegate('a.button:not(.create)', 'click', function(event) {
 			var $self = $(this);
 
 			if($self.data('action') === 'import') {
@@ -90,7 +91,7 @@
 			// Called with a JSON object as a parameter, this will trigger the
 			// Section Editor duplicator
 			import: function(def) {
-				var $controls = $fields.find('.controls'),
+				var $controls = $('fieldset.apply'),
 					imported = 0,
 					fields_definition = {},
 					section_definition = {};
@@ -128,8 +129,19 @@
 							return $(this).val() === label;
 						}).length !== 1
 					) {
-						$controls.find('option[data-type = ' + definition.type + ']').attr('selected', 'selected');
-						$controls.find('a.constructor').trigger('click');
+                        $option = $controls.find('option[value = ' + definition.type + ']');
+                        if($option.length == 0)
+                        {
+                            Symphony.Message.post(
+                                Symphony.Language.get('Field {$field} does not exist. Install the field first.',{
+                                    'field' : definition.type
+                                }),
+                                'error'
+                            );
+                            return;
+                        }
+                        $option.attr('selected', 'selected');
+						$controls.find('.constructor').trigger('click');
 
 						var $field = $fields.find('li.instance:last-of-type div.content');
 						$field.find('input[name*=label]').val(label);
@@ -185,7 +197,7 @@
 					schema.type = $field.find('input[name*=type]:hidden').val();
 
 					// Parse the rest as usual I guess
-					$field.find(':input').filter(':not(:hidden)').each(function() {
+					$field.find(':input').each(function() {
 						var $instance = $(this),
 							// For each of the fields in the setting, we need to serialize
 							// the field information, then convert it to the JSON format
@@ -194,7 +206,7 @@
 
 						// Get fields that have a name, aren't the label (we already got that)
 						// and have a field that actually has a value.
-						if(name.length >= 2 && name[1] !== 'label' && $instance.val() !== '') {
+						if(name.length >= 2 && name[1] !== 'label' && $instance.val() !== '' && name[1] !== 'id') {
 							var data = Scaffolds.get($instance);
 
 							if(data !== false) schema[name[1]] = data;
@@ -211,7 +223,7 @@
 				// Populate the iframe with the GET request so that the definition will downloaded
 				$('#iframe').attr(
 					'src',
-					Symphony.WEBSITE + '/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + encodeURIComponent(JSON.stringify(def, null, "  "))
+					'/extensions/scaffolds/lib/class.spit.php?section=' + section_name + '&schema=' + encodeURIComponent(JSON.stringify(def, null, "  "))
 				);
 			},
 
@@ -331,7 +343,7 @@
 			// Used to animate the Symphony Message's for consistency
 			applyMessage: function() {
 				// Dim system messages
-				Symphony.Message.fade('silence', 10000);
+				// Symphony.Message.fade('silence', 10000);
 			}
 		};
 	});
