@@ -27,7 +27,7 @@
 		});
 
 		// Add event handlers for the Import/Export button in the Section Editor
-		$scaffolds.find('ul').delegate('a', 'click', function(event) {
+		$('ul.actions').delegate('a.button', 'click', function(event) {
 			var $self = $(this);
 
 			if($self.data('action') === 'import') {
@@ -37,13 +37,6 @@
 				Scaffolds.export();
 			}
 
-			event.preventDefault();
-		});
-
-		// When the 'dropdown' arrow is clicked, toggle the 'dropdown' to close
-		// (or open)
-		$scaffolds.delegate('ul + a', 'click', function(event) {
-			$scaffolds.find('ul').toggleClass('target');
 			event.preventDefault();
 		});
 
