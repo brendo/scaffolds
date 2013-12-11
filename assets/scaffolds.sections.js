@@ -27,7 +27,7 @@
 		});
 
 		// Add event handlers for the Import/Export button in the Section Editor
-		$('ul.actions').delegate('a.button', 'click', function(event) {
+		$('ul.actions').delegate('a.scaffolds', 'click', function(event) {
 			var $self = $(this);
 
 			if($self.data('action') === 'import') {
